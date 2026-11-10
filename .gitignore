@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+
+# Licensed fonts must not be redistributed: only the instructions are tracked
+fonts/*
+!fonts/README.txt

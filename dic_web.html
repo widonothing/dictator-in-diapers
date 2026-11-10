@@ -1,0 +1,1457 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dittatore in Culla</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231d1d1b'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23c03f13'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wdth,wght@62.5..100,100..900&family=Instrument+Serif:ital@0;1&family=Playfair+Display:ital,wght@1,500&family=UnifrakturMaguntia&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Palette and font roles taken from niccolomiranda.com (Paper Portfolio):
+     paper #cdc6be, ink #1d1d1b, orange #c03f13.
+     Canopée -> narrow Noto Serif Display (wdth 62.5) · Editorial New -> Instrument Serif
+     Domaine Display -> Playfair Display italic · Germgoth -> UnifrakturMaguntia */
+  :root {
+    --paper: #cdc6be;
+    --paper-light: #dcd6ce;
+    --paper-dark: #beb5ab;
+    --ink: #1d1d1b;
+    --orange: #c03f13;
+    --rule: rgba(29,29,27,.28);
+    --muted: rgba(29,29,27,.62);
+    /* original fonts first (fonts/ folder), then the free stand-ins */
+    --f-title: "Canopee", "Noto Serif Display", "Bodoni Moda", Georgia, serif;
+    --f-text: "Editorial New", "Instrument Serif", Georgia, serif;
+    --f-alt: "Domaine Display", "Playfair Display", Georgia, serif;
+    --f-gothic: "Germgoth", UnifrakturMaguntia, "Old English Text MT", serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --u: .9vh;                        /* everything scales with the screen height */
+    --title-weight: 600;              /* title weight: thinner and more elegant than bold */
+    --tracking: -.03em;               /* title letters closer together */
+    --stroke: .012em;                 /* thickens the titles a little */
+    --word-gap: .05em;
+    --sidebar: 92px;
+    --spine: calc(20 * var(--u));     /* width of a book spine (Miranda: 18vh) */
+    --open-ease: .8s cubic-bezier(.645,.045,.355,1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
+  html { font-synthesis: none; -webkit-font-smoothing: antialiased; }   /* no fake bold when a font has a single weight */
+  body { background: var(--paper); color: var(--ink); font-family: var(--f-text); }
+  .disp { font-family: var(--f-title); font-stretch: 62.5%; font-weight: var(--title-weight); text-transform: uppercase; letter-spacing: var(--tracking); }
+  /* fuller titles: Canopée has one weight only, so it gets a stroke of its own colour */
+  .disp, .block, .spine-title, .dropcap, .side-num b, .stamp .value, .row .amount,
+  .photo .num b, .photo .initials, .year-now, .seal {
+    -webkit-text-stroke: var(--stroke) currentColor; paint-order: stroke fill;
+    word-spacing: var(--word-gap);   /* letters close together, words still apart */
+  }
+  .canopee { --stroke: .02em; --tracking: -.03em; --word-gap: .2em; }
+  .canopee .dropcap { font-feature-settings: "ss03"; }   /* like Miranda's drop cap */
+
+  /* paper: fine grain + wide blotches */
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 300; mix-blend-mode: multiply; opacity: .55;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .27 0 0 0 0 .22 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .36 0 0 0 0 .3 0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  }
+
+  /* ================================================== sidebar */
+  .sidebar {
+    position: fixed; z-index: 20; left: 0; top: 0; bottom: 0; width: var(--sidebar);
+    border-right: 1px solid var(--ink); background: var(--paper);
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 26px 0;
+  }
+  .side-num { font: 500 11px var(--f-mono); letter-spacing: .14em; text-align: center; line-height: 1.4; }
+  .side-num b { display: block; font: var(--title-weight) 34px/1 var(--f-title); font-stretch: 62.5%; letter-spacing: 0; }
+  .vertical { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
+  .side-title { font: 400 30px var(--f-gothic); }
+  .side-where { font: italic 400 20px var(--f-text); color: var(--muted); }
+
+  /* language switch: in the sidebar on desktop, top right on phones */
+  .lang { position: fixed; z-index: 25; left: 0; top: 100px; width: var(--sidebar); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .lang button {
+    width: 38px; padding: 5px 0; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer;
+    font: 600 11px var(--f-mono); letter-spacing: .12em;
+  }
+  .lang button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .lang button:hover { border-color: var(--orange); }
+
+  /* ================================================== horizontal track */
+  .viewport { position: fixed; top: 0; bottom: 0; right: 0; left: var(--sidebar); overflow: hidden; }
+  .track { position: absolute; top: 0; left: 0; height: 100%; display: flex; align-items: stretch; will-change: transform; --skew: 0deg; }
+  .section, .panel, .book { flex: none; position: relative; }
+  .section, .panel, .pages-inner { transform: skewX(var(--skew)); }
+
+  /* ---------- cover ---------- */
+  .section { height: 100%; padding: calc(7 * var(--u)) calc(7 * var(--u)) calc(9 * var(--u)) calc(6 * var(--u)); border-right: 1px solid var(--ink); }
+  /* cover + the 3 spines fill the screen exactly: the closed spines sit on the right edge */
+  .section:first-child { width: calc(100vw - var(--sidebar) - 3 * (var(--spine) + 1px)); padding-right: calc(3 * var(--u)); }
+  .blocks { display: flex; flex-direction: column; gap: calc(1.5 * var(--u)); align-items: flex-start; }
+  .block-row { display: flex; align-items: center; gap: calc(2.4 * var(--u)); }
+  .block {
+    display: inline-block; background: var(--ink); color: var(--paper); white-space: nowrap;
+    font-family: var(--f-title); font-stretch: 62.5%; font-weight: var(--title-weight); text-transform: uppercase;
+    font-size: calc(22 * var(--u)); line-height: .76; letter-spacing: var(--tracking);
+    /* like Miranda (24vh on 17vh, minimal margins): the box hugs the capitals;
+       text-box trims the font's empty space, so the text is centred with any font */
+    text-box: trim-both cap alphabetic;
+    padding: .09em .07em .09em .055em;
+  }
+  .stamp {
+    width: calc(21 * var(--u)); height: calc(25 * var(--u)); flex: none; padding: 9px; transform: rotate(4deg);
+    background: radial-gradient(circle at 50% 50%, transparent 4.5px, #e7e2da 5px) -7px -7px / 14px 14px;
+    filter: drop-shadow(0 4px 6px rgba(29,29,27,.18));
+  }
+  .stamp .inner { height: 100%; background: #e7e2da; outline: 1px solid var(--rule); outline-offset: -6px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: calc(1.6 * var(--u)) 8px; }
+  .stamp svg { width: 70%; height: auto; }
+  .stamp .value { font: var(--title-weight) calc(5 * var(--u))/1 var(--f-title); font-stretch: 62.5%; }
+  .stamp small { font: 500 calc(1.05 * var(--u)) var(--f-mono); letter-spacing: .12em; text-transform: uppercase; text-align: center; line-height: 1.5; }
+  /* opening text like Miranda's has-dropcap: 4vh on 5.1vh, 15vh drop cap in a box */
+  .lead { width: calc(80 * var(--u)); max-width: 100%; margin: calc(5 * var(--u)) 0 0; font: 400 calc(4 * var(--u))/1.22 var(--f-text); }
+  .dropcap {
+    float: left; background: var(--ink); color: var(--paper);
+    font: var(--title-weight) calc(12.5 * var(--u))/1 var(--f-title); font-stretch: 62.5%;
+    text-box: trim-both cap alphabetic;
+    padding: calc(1.5 * var(--u)) calc(1.1 * var(--u)); margin: calc(.9 * var(--u)) calc(1.6 * var(--u)) calc(.6 * var(--u)) 0;
+  }
+
+  /* ================================================== books on the shelf */
+  .book { height: 100%; display: flex; border-right: 1px solid rgba(29,29,27,.3); }
+  .spine {
+    width: var(--spine); height: 100%; flex: none; position: relative; cursor: pointer;
+    background: transparent; border: 0; padding: calc(9 * var(--u)) 0 calc(14 * var(--u)); color: var(--ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    transition: background-color .4s ease-out;
+  }
+  .spine:hover, .book.open .spine { background: rgb(216,207,197); }
+  .spine:focus-visible { outline: 2px solid var(--orange); outline-offset: -4px; }
+  .spine-title {
+    /* up to two lines; fitTitles() adjusts the size so the whole name fits */
+    writing-mode: vertical-rl; white-space: nowrap; overflow: hidden; text-align: start;
+    max-height: calc(56 * var(--u)); max-width: calc(var(--spine) - 3 * var(--u));
+    font-family: var(--f-title); font-stretch: 62.5%; font-weight: var(--title-weight); text-transform: uppercase;
+    font-size: calc(6.8 * var(--u)); line-height: .95; letter-spacing: var(--tracking);
+  }
+  .spine-foot { display: flex; flex-direction: column; align-items: center; gap: calc(1.4 * var(--u)); }
+  .spine-foot .badge { writing-mode: vertical-rl; padding: 8px 4px; }
+  .spine-foot span:last-child { writing-mode: vertical-rl; font: 400 calc(2.6 * var(--u)) var(--f-text); }
+  .spine .arrow { position: absolute; left: 50%; bottom: calc(5 * var(--u)); width: 12px; height: 12px; margin-left: -6px;
+    border-right: 2px solid var(--orange); border-bottom: 2px solid var(--orange); transform: rotate(-45deg); transition: transform var(--open-ease); }
+  .book.open .spine .arrow { transform: rotate(135deg); }
+
+  .pages { width: 0; height: 100%; overflow: hidden; transition: width var(--open-ease); }
+  .book.open .pages { width: var(--w); }
+  .pages-inner {
+    width: var(--w); height: 100%; display: flex; align-items: center;
+    padding: calc(6 * var(--u)) calc(5 * var(--u)) calc(11 * var(--u)) calc(4 * var(--u));
+    opacity: 0; transition: opacity .5s ease;
+  }
+  .book.open .pages-inner { opacity: 1; transition-delay: .25s; }
+  .no-transition .pages, .no-transition .pages-inner { transition: none !important; }
+
+  /* content: gazette */
+  .newspaper { width: 100%; height: 100%; display: flex; flex-direction: column; }
+  .masthead { font: 400 calc(7 * var(--u))/1 var(--f-gothic); text-align: center; margin: 0; }
+  .dateline {
+    display: flex; justify-content: space-between; gap: 10px;
+    font: 500 calc(1.3 * var(--u)) var(--f-mono); letter-spacing: .14em; text-transform: uppercase;
+    border-top: 3px double var(--ink); border-bottom: 1px solid var(--ink); padding: calc(.9 * var(--u)) 0; margin: calc(1.8 * var(--u)) 0;
+  }
+  .columns2 { columns: 2; column-gap: calc(3.4 * var(--u)); column-rule: 1px solid var(--rule); font-size: calc(3 * var(--u)); line-height: 1.26; flex: 1; }
+  .columns2 p { margin: 0 0 calc(1.4 * var(--u)); text-align: justify; hyphens: auto; }
+  .columns2 blockquote { margin: 0 0 calc(1.4 * var(--u)); padding: calc(1.2 * var(--u)) 0; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); font: italic 400 calc(4 * var(--u))/1.08 var(--f-text); text-align: center; break-inside: avoid; }
+
+  /* content: notice */
+  .notice .block { font-size: calc(12 * var(--u)); }
+  .notice p { font-size: calc(3.3 * var(--u)); line-height: 1.22; margin: calc(2.6 * var(--u)) 0 0; }
+  .notice h4 { font: 600 calc(1.3 * var(--u)) var(--f-mono); letter-spacing: .18em; text-transform: uppercase; margin: calc(3 * var(--u)) 0 calc(1.2 * var(--u)); padding-top: calc(1.4 * var(--u)); border-top: 2px solid var(--ink); }
+  .notice ol { margin: 0; padding-left: 1.3em; font-size: calc(2.9 * var(--u)); line-height: 1.22; }
+  .notice li { margin-bottom: calc(.9 * var(--u)); }
+  .notice li::marker { font: var(--title-weight) 1em var(--f-title); font-stretch: 62.5%; color: var(--orange); }
+
+  /* content: form */
+  .cutout { width: 100%; position: relative; border: 2px dashed var(--ink); padding: 8px; }
+  .cutout::before {
+    content: attr(data-cut); position: absolute; top: -11px; left: 26px;
+    background: var(--paper); padding: 0 10px; font: 500 11px/20px var(--f-mono); letter-spacing: .2em; text-transform: uppercase;
+  }
+  .sheet { background: var(--paper-light); padding: calc(3.4 * var(--u)) calc(3.6 * var(--u)) calc(3 * var(--u)); }
+  .form-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: calc(1 * var(--u)); margin-bottom: calc(2.4 * var(--u)); }
+  .form-head h3 { margin: 0; font-size: calc(7 * var(--u)); line-height: .9; }
+  .form-head span { font: 500 calc(1.2 * var(--u)) var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .subjects { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .subject { padding: 0 calc(2.6 * var(--u)) 4px; border-left: 1px solid var(--rule); }
+  .subject:first-child { border-left: 0; padding-left: 0; }
+  .subject:last-child { padding-right: 0; }
+  .subject h4 { font: italic 400 calc(4.4 * var(--u))/1 var(--f-text); margin: calc(1 * var(--u)) 0 calc(.6 * var(--u)); white-space: nowrap; }
+  label.field { display: block; font: 500 calc(1.2 * var(--u)) var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: calc(1.8 * var(--u)) 0 4px; }
+  .input { width: 100%; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0; background: transparent; padding: 6px 2px; font: 400 calc(3.3 * var(--u)) var(--f-text); color: var(--ink); }
+  .input::placeholder { color: rgba(29,29,27,.35); }
+  .input:focus { outline: none; border-bottom-color: var(--orange); }
+  .input:disabled { color: var(--muted); border-bottom-style: dashed; }
+  .dp { position: relative; }
+  .dp .input { padding-right: 52px; }
+  .dp-btn { position: absolute; right: 0; bottom: 8px; height: 28px; padding: 0 9px; border: 0; cursor: pointer; background: var(--ink); color: var(--paper); font: 600 10px var(--f-mono); letter-spacing: .1em; }
+  .dp-btn:disabled { opacity: .3; cursor: default; }
+  .checkbox-row { display: flex; gap: 10px; align-items: flex-start; margin-top: calc(1.8 * var(--u)); cursor: pointer; font-size: calc(2.3 * var(--u)); line-height: 1.22; }
+  .checkbox-row input { appearance: none; width: 20px; height: 20px; border: 2px solid var(--ink); margin: 2px 0 0; flex: none; cursor: pointer; display: grid; place-items: center; }
+  .checkbox-row input:checked { background: var(--orange); border-color: var(--orange); }
+  .checkbox-row input:checked::after { content: "X"; color: #fff; font: 700 11px var(--f-mono); }
+  .note { font: italic 400 calc(2.2 * var(--u)) var(--f-text); color: var(--muted); margin: calc(.8 * var(--u)) 0 0; min-height: 1.2em; }
+  .submit {
+    margin-top: calc(2.6 * var(--u)); width: 100%; border: 0; cursor: pointer; background: var(--ink); color: var(--paper);
+    font-size: calc(5.6 * var(--u)); line-height: 1; padding: calc(2.2 * var(--u)) calc(2 * var(--u)); text-box: trim-both cap alphabetic;
+    display: flex; justify-content: center; align-items: center; gap: 18px; transition: background .25s;
+  }
+  .submit .thread-btn { width: 90px; height: 2px; background: var(--orange); position: relative; transition: width .3s, background .3s; }
+  .submit .thread-btn::after { content: ""; position: absolute; right: -5px; top: -5px; width: 12px; height: 12px; border-radius: 50%; background: inherit; }
+  .submit:hover { background: var(--orange); }
+  .submit:hover .thread-btn { width: 150px; background: var(--paper); }
+  .error { font: italic 400 calc(2.4 * var(--u)) var(--f-text); color: var(--orange); margin: calc(1 * var(--u)) 0 0; display: none; }
+
+  /* date picker (lives in the body, above everything) */
+  .dp-pop { position: fixed; z-index: 250; width: 300px; display: none; background: var(--ink); color: var(--paper); padding: 14px; box-shadow: 0 18px 40px rgba(29,29,27,.35); border-top: 4px solid var(--orange); }
+  .dp-pop.open { display: block; animation: drop .15s ease-out; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-6px); } }
+  .dp-head { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+  .dp-head button { width: 30px; height: 30px; border: 1px solid #3c3a36; background: transparent; color: var(--paper); cursor: pointer; font: 600 14px var(--f-mono); }
+  .dp-head button:hover { border-color: var(--orange); color: var(--orange); }
+  .dp-head select, .dp-head input { flex: 1; min-width: 0; background: #262624; color: var(--paper); border: 1px solid #3c3a36; font: 500 13px var(--f-mono); padding: 6px; text-transform: uppercase; }
+  .dp-head input { flex: 0 0 74px; }
+  .dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .dp-grid .wd { font: 600 10px var(--f-mono); color: #8f887f; text-align: center; padding: 4px 0; }
+  .dp-grid button { aspect-ratio: 1; border: 0; background: #2a2a28; color: var(--paper); cursor: pointer; font: 500 13px var(--f-mono); }
+  .dp-grid button:hover { background: #3c3a36; }
+  .dp-grid button.today { outline: 1px solid #8f887f; outline-offset: -1px; }
+  .dp-grid button.selected { background: var(--orange); color: #fff; }
+  .dp-foot { display: flex; justify-content: space-between; margin-top: 10px; }
+  .dp-foot button { background: none; border: 0; color: #8f887f; font: 600 11px var(--f-mono); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  .dp-foot button:hover { color: var(--paper); }
+
+  .badge { display: inline-block; background: var(--orange); color: var(--paper-light); font: 600 calc(1.15 * var(--u))/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; padding: 5px 8px; text-box: trim-both cap alphabetic; }
+
+  /* ================================================== results */
+  .panel { align-self: center; margin: 0 calc(7 * var(--u)); z-index: 2; }
+  .panel.first { margin-left: calc(12 * var(--u)); }
+  .thread { position: absolute; top: 0; left: 0; height: 100%; pointer-events: none; overflow: visible; z-index: 1; }
+  .thread path { fill: none; stroke: var(--orange); stroke-width: 2.4; stroke-linecap: round; }
+  .pin {
+    position: absolute; z-index: 4; top: -9px; width: 18px; height: 18px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ec7a55, var(--orange) 55%, #8a2b0c); box-shadow: 0 3px 4px rgba(29,29,27,.35);
+  }
+  .pin.left { left: 26px; }
+  .pin.right { right: 26px; }
+  .spine .pin { top: calc(3 * var(--u)); left: 50%; margin-left: -9px; }
+
+  .p-result { display: grid; grid-template-columns: auto calc(64 * var(--u)); gap: calc(6 * var(--u)); align-items: center; margin-bottom: calc(4 * var(--u)); }
+  .percent { position: relative; }
+  .percent .block { font-size: calc(40 * var(--u)); }
+  .digits-box { position: relative; display: inline-block; }
+  .digits-box .reserve { visibility: hidden; }
+  .digits-box #digits { position: absolute; right: 0; top: 0; }
+  .percent .block sup { font: italic 500 .3em/1 var(--f-alt); color: var(--orange); vertical-align: .95em; margin-left: .05em; text-transform: none; -webkit-text-stroke: 0; }
+  .seal {
+    position: absolute; right: calc(-5 * var(--u)); bottom: calc(-3 * var(--u));
+    font-size: calc(5.4 * var(--u)); line-height: 1; letter-spacing: .04em; text-box: trim-both cap alphabetic;
+    color: var(--orange); border: 4px solid var(--orange); padding: calc(1.2 * var(--u)) calc(1.8 * var(--u)); background: rgba(205,198,190,.85);
+    transform: rotate(-9deg); opacity: 0; white-space: nowrap;
+  }
+  .seal.down { animation: slam .45s cubic-bezier(.2,1.6,.4,1) forwards; animation-delay: .3s; }
+  @keyframes slam { from { opacity: 0; transform: rotate(-9deg) scale(2.4); } to { opacity: .95; transform: rotate(-9deg) scale(1); } }
+  .level { font: 600 calc(1.35 * var(--u)) var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: calc(1.2 * var(--u)); }
+  .scale { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; margin-bottom: calc(2.4 * var(--u)); }
+  .scale i { height: calc(3 * var(--u)); background: var(--paper-dark); transition: background .25s; }
+  .scale i.on { background: var(--ink); }
+  .scale i.on:nth-child(n+13) { background: var(--orange); }
+  .verdict { font: italic 400 calc(4.8 * var(--u))/1.06 var(--f-text); margin: 0 0 calc(2 * var(--u)); }
+  .formula { font: 500 calc(1.4 * var(--u))/1.6 var(--f-mono); color: var(--muted); border-top: 1px solid var(--rule); padding-top: calc(1.2 * var(--u)); }
+  .formula b { color: var(--ink); }
+  .pin-start { position: absolute; right: calc(-5 * var(--u)); top: 12%; width: 16px; height: 16px; border-radius: 50%; background: var(--orange); box-shadow: 0 3px 4px rgba(29,29,27,.35); }
+
+  .p-report { width: calc(84 * var(--u)); background: var(--paper-light); padding: calc(3.4 * var(--u)) calc(3.6 * var(--u)); box-shadow: 0 16px 30px rgba(29,29,27,.16); transform: skewX(var(--skew)) rotate(1deg); }
+  .p-report h3 { margin: 0 0 calc(1 * var(--u)); }
+  .p-report h3 .block { font-size: calc(8 * var(--u)); }
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 6px 18px; padding: calc(1.8 * var(--u)) 0; border-top: 1px solid var(--rule); }
+  .row .who { grid-column: 1 / -1; }
+  .row .what { font-size: calc(3.1 * var(--u)); line-height: 1.16; }
+  .row .what small { display: block; font: 400 calc(1.35 * var(--u)) var(--f-mono); color: var(--muted); margin-top: 6px; letter-spacing: .04em; }
+  .row .amount { font: var(--title-weight) calc(7 * var(--u))/1 var(--f-title); font-stretch: 62.5%; align-self: center; }
+
+  .p-intro { width: calc(54 * var(--u)); align-self: flex-end; margin-bottom: calc(16 * var(--u)); }
+  .p-intro .big { font: italic 400 calc(9 * var(--u))/1 var(--f-text); margin: 0 0 calc(1.6 * var(--u)); }
+  .p-intro p { font-size: calc(3.2 * var(--u)); line-height: 1.2; margin: 0; }
+
+  /* open dossier */
+  .bg-year {
+    position: absolute; z-index: 0; left: 50%; top: 46%;
+    font: var(--title-weight) calc(60 * var(--u))/1 var(--f-title); font-stretch: 62.5%; color: transparent; -webkit-text-stroke: 1.5px rgba(29,29,27,.15);
+    white-space: nowrap; pointer-events: none; transform: translate(calc(-50% + var(--px, 0px)), -50%);
+  }
+  /* full-page card: tall photo on the left; on the right two rows:
+     1) name, role and dates   2) story, estimated victims and margin note */
+  .card {
+    position: relative; z-index: 2; width: 100%; height: 100%; display: grid;
+    grid-template-columns: calc(42 * var(--u)) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
+    background: var(--paper-light); box-shadow: 0 20px 40px rgba(29,29,27,.2); transform: rotate(-.5deg);
+  }
+  /* at the top, level with the spine pins: the thread never crosses the names */
+  .dossier .pages-inner { align-items: stretch; padding: calc(6.5 * var(--u)) calc(3 * var(--u)) calc(12 * var(--u)); }
+  .photo { position: relative; background: #2b2a27; overflow: hidden; min-height: 0; }
+  .photo .img { position: absolute; inset: 0; background: center 20% / cover no-repeat; filter: grayscale(1) contrast(1.25) brightness(.98) sepia(.15); }
+  .photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(29,29,27,.85)); }
+  .photo .initials { position: absolute; inset: 0; display: grid; place-items: center; font: var(--title-weight) calc(16 * var(--u)) var(--f-title); font-stretch: 62.5%; color: #4c4a45; }
+  .photo .num { position: absolute; left: calc(2.4 * var(--u)); bottom: calc(2.2 * var(--u)); z-index: 2; color: var(--paper); font: 600 calc(1.2 * var(--u)) var(--f-mono); letter-spacing: .2em; text-transform: uppercase; }
+  .photo .num b { display: block; font: var(--title-weight) calc(7 * var(--u))/1 var(--f-title); font-stretch: 62.5%; letter-spacing: var(--tracking); }
+  .text { padding: calc(2.8 * var(--u)) calc(3.8 * var(--u)); overflow-y: auto; min-height: 0; }
+  .text::-webkit-scrollbar { width: 6px; }
+  .text::-webkit-scrollbar-thumb { background: var(--paper-dark); }
+  .content { display: flex; flex-direction: column; }
+  .card-head { padding-bottom: calc(2 * var(--u)); }
+  .story { border-top: 2px solid var(--ink); padding-top: calc(2 * var(--u)); }
+  .reasons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: calc(1.4 * var(--u)); }
+  .text h3 { font-size: calc(9 * var(--u)); line-height: .9; margin: calc(.4 * var(--u)) 0 calc(1.2 * var(--u)); }
+  .role { font: italic 400 calc(3.2 * var(--u))/1.15 var(--f-text); color: var(--muted); margin: 0 0 calc(2 * var(--u)); }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--rule); margin: 0; }
+  .facts div { padding: calc(1 * var(--u)) 14px 0 0; }
+  .facts div + div { padding-left: 14px; border-left: 1px solid var(--rule); }
+  .facts dt { font: 600 calc(1.2 * var(--u)) var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+  .facts dd { margin: 4px 0 0; font-size: calc(2.8 * var(--u)); line-height: 1.12; }
+  .bio { font-size: calc(3.1 * var(--u)); line-height: 1.25; margin: 0 0 calc(2 * var(--u)); }
+  .bio::first-letter { font: var(--title-weight) 2.8em/.8 var(--f-title); font-stretch: 62.5%; float: left; padding: 5px 10px 0 0; }
+  .boxes { display: grid; grid-template-columns: 1fr 1fr; gap: calc(1.6 * var(--u)); margin: 0; }
+  .box { padding: calc(1.6 * var(--u)) calc(1.8 * var(--u)); font-size: calc(2.8 * var(--u)); line-height: 1.22; }
+  .box dt { font: 600 calc(1.2 * var(--u)) var(--f-mono); letter-spacing: .18em; text-transform: uppercase; margin-bottom: 8px; }
+  .box dd { margin: 0; }
+  .victims { background: var(--ink); color: var(--paper); }
+  .victims dt { color: #ec7a55; }
+  .fun-fact { border: 1px dashed var(--muted); }
+  .fun-fact dt { color: var(--muted); }
+
+  .p-end { width: calc(66 * var(--u)); text-align: center; margin-right: calc(16 * var(--u)); }
+  .p-end .pin { position: relative; display: block; margin: 0 auto calc(2 * var(--u)); top: 0; left: auto; }
+  .p-end .block { font-size: calc(30 * var(--u)); }
+  .p-end h3 { font: italic 400 calc(6.5 * var(--u))/1.02 var(--f-text); margin: calc(2.4 * var(--u)) 0 calc(1.4 * var(--u)); }
+  .p-end p { font-size: calc(3.2 * var(--u)); line-height: 1.2; margin: 0 0 calc(3 * var(--u)); }
+  .restart { border: 2px solid var(--ink); background: transparent; padding: calc(1.6 * var(--u)) calc(2.6 * var(--u)); cursor: pointer; font: 600 calc(1.35 * var(--u)) var(--f-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--ink); }
+  .restart:hover { background: var(--ink); color: var(--paper); }
+
+  /* ================================================== timeline */
+  .timeline {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; height: calc(10 * var(--u)); min-height: 74px;
+    background: var(--ink); color: var(--paper); padding: 12px 28px 0;
+    display: grid; grid-template-columns: 170px 1fr; gap: 24px; align-items: start;
+    transform: translateY(100%); transition: transform .5s cubic-bezier(.6,0,.2,1);
+  }
+  .timeline.visible { transform: none; }
+  .year-now { font: var(--title-weight) calc(5.6 * var(--u))/1 var(--f-title); font-stretch: 62.5%; font-variant-numeric: tabular-nums; }
+  .year-now small { display: block; font: 500 10px var(--f-mono); letter-spacing: .2em; color: #8f887f; text-transform: uppercase; margin-bottom: 3px; -webkit-text-stroke: 0; }
+  .axis { position: relative; height: 52px; margin-top: 6px; }
+  .axis::before { content: ""; position: absolute; left: 0; right: 0; top: 14px; height: 1px; background: #4c4a45; }
+  .axis .progress-fill { position: absolute; left: 0; top: 13px; height: 3px; background: var(--orange); width: 0; }
+  .axis .tick { position: absolute; top: 8px; transform: translateX(-50%); text-align: center; cursor: pointer; }
+  .axis .tick i { display: block; width: 13px; height: 13px; margin: 0 auto; border-radius: 50%; background: var(--ink); border: 2px solid #8f887f; transition: all .2s; }
+  .axis .tick.passed i { border-color: var(--orange); background: var(--orange); }
+  .axis .tick span { display: block; font: 500 11px var(--f-mono); color: #8f887f; margin-top: 6px; white-space: nowrap; }
+  .axis .tick:hover span { color: var(--paper); }
+  .axis.crowded .tick span { display: none; }
+  .progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; z-index: 11; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--orange); }
+
+  /* ================================================== torn paper curtain */
+  .curtain { position: fixed; inset: 0; z-index: 280; pointer-events: none; overflow: hidden; }
+  .curtain-sheet { position: absolute; top: -2%; bottom: -2%; left: 0; width: 150vw; transform: translateX(110vw); background: var(--ink); display: grid; place-items: center; }
+  .curtain-sheet::before, .curtain-sheet::after { content: ""; position: absolute; top: 0; bottom: 0; width: 44px; background-repeat: repeat-y; background-size: 44px 240px; }
+  .curtain-sheet::before { left: -43px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='240' viewBox='0 0 44 240'%3E%3Cpath fill='%231d1d1b' d='M44 0 L30 0 L18 9 L26 21 L9 34 L21 47 L3 62 L17 75 L12 90 L28 101 L6 117 L19 129 L10 144 L25 156 L2 171 L16 183 L8 198 L27 210 L13 225 L30 240 L44 240 Z'/%3E%3C/svg%3E"); }
+  .curtain-sheet::after { right: -43px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='240' viewBox='0 0 44 240'%3E%3Cpath fill='%231d1d1b' d='M0 0 L14 0 L26 11 L16 24 L37 36 L22 50 L41 63 L27 77 L33 91 L15 103 L38 118 L24 131 L35 146 L18 158 L42 172 L28 185 L36 199 L17 212 L31 226 L14 240 L0 240 Z'/%3E%3C/svg%3E"); }
+  .curtain-sheet span { font: 400 calc(10 * var(--u)) var(--f-gothic); color: var(--paper); opacity: .9; }
+
+  /* ================================================== portrait screens (phones) */
+  @media (max-aspect-ratio: 4/5) {
+    :root { --u: 0.8vh; --sidebar: 0px; --spine: 19vw; }
+    .sidebar { display: none; }
+    .lang { left: auto; right: 10px; top: 10px; width: auto; flex-direction: row; }
+    .section, .section:first-child { width: 100vw; padding: calc(6 * var(--u)) 6vw calc(8 * var(--u)); }
+    .block { font-size: 16vw; }
+    .stamp { display: none; }
+    .lead { width: 88vw; font-size: 6vw; }
+    .book { --w: calc(100vw - var(--spine) - 2vw) !important; }   /* spine + open book = screen width */
+    .pages-inner { padding: calc(5 * var(--u)) 5vw calc(10 * var(--u)) 4vw; overflow-y: auto; align-items: flex-start; }
+    .columns2 { columns: 1; font-size: 4.8vw; }
+    .notice .block { font-size: 16vw; }
+    .notice p, .notice ol { font-size: 4.8vw; }
+    .subjects { grid-template-columns: 1fr; }
+    .subject { border-left: 0; border-top: 1px solid var(--rule); padding: 14px 0 4px; }
+    .subject:first-child { border-top: 0; }
+    .subject h4 { font-size: 7vw; }
+    .input { font-size: 5.6vw; }
+    .form-head h3 { font-size: 9vw; }
+    .submit { font-size: 9vw; }
+    .p-result { grid-template-columns: 1fr; width: 86vw; }
+    .percent .block { font-size: 34vw; }
+    .p-report, .p-intro, .p-end { width: 84vw; }
+    .row .what { font-size: 4.6vw; }
+    .card { display: block; overflow-y: auto; height: 74vh; }
+    .card .photo { height: 26vh; min-height: 0; }
+    .card .text { overflow: visible; }
+    .text h3 { font-size: 11vw; }
+    .bio, .box, .facts dd { font-size: 4.6vw; }
+    .role { font-size: 5.4vw; }
+    .facts, .boxes { grid-template-columns: 1fr; }
+    .facts div + div { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); }
+    .timeline { grid-template-columns: 1fr; gap: 0; padding-top: 8px; }
+    .year-now small, .axis .tick span { display: none; }
+    .year-now { font-size: 26px; }
+    .verdict { font-size: 6.4vw; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root { --open-ease: .01s linear; }
+    .seal.down { animation: none; opacity: .95; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="side-num">N.<b>81</b></div>
+  <div class="vertical side-title" data-i18n="sideTitle"></div>
+  <div class="vertical side-where" id="side-where"></div>
+</aside>
+
+<div class="lang" role="group" aria-label="Language / Lingua">
+  <button type="button" data-lang="it" aria-pressed="false">IT</button>
+  <button type="button" data-lang="en" aria-pressed="false">EN</button>
+</div>
+
+<main class="viewport" id="viewport">
+  <div class="track" id="track">
+
+    <!-- ============ COVER (always open) ============ -->
+    <section class="section" id="cover" data-i18n-attr="data-name:frontPage">
+      <div class="blocks" data-parallax="-0.05">
+        <div class="block" data-i18n="coverLine1"></div>
+        <div class="block-row">
+          <div class="block" data-i18n="coverLine2"></div>
+          <div class="stamp" aria-hidden="true">
+            <div class="inner">
+              <small data-i18n="stampTop"></small>
+              <svg viewBox="0 0 100 70"><g fill="none" stroke="#c03f13" stroke-width="3">
+                <path d="M20 58 Q50 4 80 58"/><path d="M32 58 Q50 22 68 58"/></g>
+                <circle cx="50" cy="40" r="7" fill="#1d1d1b"/><path d="M38 30 L44 18 L50 28 L56 18 L62 30 Z" fill="#c03f13"/>
+                <line x1="10" y1="60" x2="90" y2="60" stroke="#1d1d1b" stroke-width="2"/></svg>
+              <span class="value">81</span>
+              <small data-i18n="stampBottom"></small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="lead"><span class="dropcap" data-i18n="leadCap"></span><span data-i18n="leadRest"></span></p>
+    </section>
+
+    <!-- ============ SHELF: gazette, notice, form ============ -->
+    <article class="book" data-shelf="front" data-i18n-attr="data-name:gazetteName" style="--w: calc(76 * var(--u))">
+      <button class="spine" type="button" aria-expanded="false">
+        <span class="spine-title" data-i18n="gazetteSpine"></span>
+        <span class="spine-foot"><span class="badge" data-i18n="gazetteBadge"></span><span data-i18n="page2"></span></span>
+        <i class="arrow"></i>
+      </button>
+      <div class="pages"><div class="pages-inner">
+        <div class="newspaper">
+          <h2 class="masthead" data-i18n="gazetteName"></h2>
+          <div class="dateline"><span data-i18n="issue"></span><span id="today-long"></span><span data-i18n="special"></span></div>
+          <div class="columns2">
+            <p data-i18n="gazetteP1"></p>
+            <blockquote data-i18n="gazetteQuote"></blockquote>
+            <p data-i18n="gazetteP2"></p>
+          </div>
+        </div>
+      </div></div>
+    </article>
+
+    <article class="book" data-shelf="front" data-i18n-attr="data-name:noticeName" style="--w: calc(58 * var(--u))">
+      <button class="spine" type="button" aria-expanded="false">
+        <span class="spine-title" data-i18n="noticeName"></span>
+        <span class="spine-foot"><span class="badge" data-i18n="noticeBadge"></span><span data-i18n="page3"></span></span>
+        <i class="arrow"></i>
+      </button>
+      <div class="pages"><div class="pages-inner">
+        <div class="notice">
+          <div class="block" data-i18n="noticeTitle"></div>
+          <p data-i18n="noticeText"></p>
+          <h4 data-i18n="protocolTitle"></h4>
+          <ol>
+            <li data-i18n="rule1"></li>
+            <li data-i18n="rule2"></li>
+            <li data-i18n="rule3"></li>
+          </ol>
+        </div>
+      </div></div>
+    </article>
+
+    <article class="book" data-shelf="front" data-i18n-attr="data-name:formName" id="form-book" style="--w: calc(130 * var(--u))">
+      <button class="spine" type="button" aria-expanded="false">
+        <span class="spine-title" data-i18n="formSpine"></span>
+        <span class="spine-foot"><span class="badge" data-i18n="formBadge"></span><span data-i18n="page4"></span></span>
+        <i class="arrow"></i>
+      </button>
+      <div class="pages"><div class="pages-inner">
+        <div class="cutout" data-i18n-attr="data-cut:cutLine">
+          <form id="form" class="sheet" autocomplete="off" novalidate>
+            <div class="form-head">
+              <h3 class="disp" data-i18n="formTitle"></h3>
+              <span data-i18n="formCode"></span>
+            </div>
+            <div class="subjects">
+              <div class="subject">
+                <span class="badge" data-i18n="subjectA"></span>
+                <h4 data-i18n="parent1"></h4>
+                <label class="field" for="n1" data-i18n="name"></label>
+                <input class="input" id="n1" maxlength="40" data-i18n-attr="placeholder:placeholderA">
+                <label class="field" for="d1" data-i18n="birthDate"></label>
+                <div class="dp" data-id="d1"></div>
+              </div>
+              <div class="subject">
+                <span class="badge" data-i18n="subjectB"></span>
+                <h4 data-i18n="parent2"></h4>
+                <label class="field" for="n2" data-i18n="name"></label>
+                <input class="input" id="n2" maxlength="40" data-i18n-attr="placeholder:placeholderB">
+                <label class="field" for="d2" data-i18n="birthDate"></label>
+                <div class="dp" data-id="d2"></div>
+              </div>
+              <div class="subject">
+                <span class="badge" data-i18n="subjectC"></span>
+                <h4 data-i18n="baby"></h4>
+                <label class="field" for="dc" data-i18n="birthDate"></label>
+                <div class="dp" data-id="dc"></div>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="estimate">
+                  <span data-i18n="notBorn"></span>
+                </label>
+                <p class="note" id="estimate-note"></p>
+              </div>
+            </div>
+            <button class="submit disp" type="submit"><span data-i18n="submit"></span> <span class="thread-btn"></span></button>
+            <p class="error" id="error"></p>
+          </form>
+        </div>
+      </div></div>
+    </article>
+
+  </div>
+
+  <div class="timeline" id="timeline">
+    <div class="year-now"><small data-i18n="year"></small><span id="year-now"></span></div>
+    <div class="axis" id="axis"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+  <div class="progress"><i id="progress"></i></div>
+</main>
+
+<div class="curtain" aria-hidden="true"><div class="curtain-sheet" id="curtain"><span data-i18n="special"></span></div></div>
+
+<script>
+/* ============================================================ texts (Italian / English) */
+const I18N = {
+  it: {
+    docTitle: "Dittatore in Culla",
+    sideTitle: "Dittatore in Culla",
+    frontPage: "Prima pagina",
+    coverLine1: "Dittatore", coverLine2: "In culla",
+    stampTop: "Poste del destino", stampBottom: "Fascicoli · 69–2026",
+    leadCap: "O",
+    leadRest: "gni tiranno della storia è stato, prima di tutto, un neonato. Qualcuno l'ha cullato, qualcuno gli ha scelto il nome. Nessuno ha visto arrivare quello che sarebbe venuto dopo.",
+    gazetteName: "Gazzetta delle Probabilità", gazetteSpine: "La Gazzetta", gazetteBadge: "Leggi", page2: "Pag. 2",
+    issue: "Anno I · N. 81", special: "Edizione straordinaria",
+    gazetteP1: "Questa gazzetta prova a rimediare. Confronta i compleanni di due genitori con quelli di 81 dittatori, imperatori e autocrati, da Nerone ad Assad, e la nascita del loro figlio con l'anniversario del giorno in cui ognuno di loro ha preso il potere.",
+    gazetteQuote: "«Più le date si avvicinano, più il fascicolo si fa pesante.»",
+    gazetteP2: "Il risultato si legge come un'indagine: un filo rosso parte dalla vostra famiglia, attraversa i secoli fermandosi su ogni fascicolo collegato e arriva fino alla culla.",
+    noticeName: "Avviso ai lettori", noticeBadge: "Regole", page3: "Pag. 3", noticeTitle: "Avviso",
+    noticeText: "Compilate il modulo con le date dei genitori e del nascituro. Se il bambino non è ancora nato, la redazione stimerà la data a nove mesi da oggi.",
+    protocolTitle: "Protocollo di valutazione",
+    rule1: "Compleanno di ciascun genitore contro quello di ogni dittatore: vale il 70%.",
+    rule2: "Nascita del figlio contro l'anniversario di ogni presa del potere: vale il 30%.",
+    rule3: "Il 100% esce solo se tutto coincide.",
+    formName: "Modulo per i lettori", formSpine: "Il modulo", formBadge: "Modulo", page4: "Pag. 4",
+    cutLine: "Ritagliare lungo la linea tratteggiata", formTitle: "Richiesta di valutazione", formCode: "Modulo 7/B",
+    subjectA: "Soggetto A", subjectB: "Soggetto B", subjectC: "Soggetto C",
+    parent1: "Primo genitore", parent2: "Secondo genitore", baby: "Il nascituro",
+    name: "Nome", birthDate: "Data di nascita", placeholderA: "Anna", placeholderB: "Marco", datePlaceholder: "gg/mm/aaaa",
+    notBorn: "Non è ancora nato o la data è incerta: stima a 9 mesi da oggi",
+    estimatedNote: "Data stimata: {d}.",
+    submit: "Tira il filo",
+    missing: "Manca: {list}. Formato: gg/mm/aaaa.",
+    missingA: "data del soggetto A", missingB: "data del soggetto B", missingC: "data del nascituro (o spunta la stima)",
+    serverError: "Il server non risponde come dovrebbe: {msg}. È ancora acceso?",
+    months: ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"],
+    weekdays: ["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"],
+    calDays: ["L", "M", "M", "G", "V", "S", "D"],
+    calToday: "Oggi", calClear: "Cancella", calOpen: "Apri calendario", calMonth: "Mese", calYear: "Anno",
+    calPrev: "Mese precedente", calNext: "Mese successivo",
+    year: "Anno", today: "Oggi",
+    levels: [
+      [100, "Confermato", "Livello 5 · Certezza storica",
+       "Tutte le congiunzioni coincidono. La storia ha già prenotato un balcone, una divisa e almeno una statua equestre."],
+      [80, "Critico", "Livello 4 · Minaccia critica",
+       "Gli astri non mentono, e nemmeno l'archivio. Meglio evitare soldatini, mappamondi e qualunque gioco da tavolo con la parola «conquista»."],
+      [60, "Elevato", "Livello 3 · Minaccia elevata",
+       "Le coincidenze sono troppe per essere ignorate. Primo segnale da tenere d'occhio: discorsi lunghissimi dal seggiolone."],
+      [40, "Sorvegliare", "Livello 2 · Sorveglianza attiva",
+       "Profilo ambiguo. Potrebbe diventare un leader carismatico, o soltanto il capoclasse più temuto della scuola."],
+      [15, "Marginale", "Livello 1 · Rischio marginale",
+       "Qualche affinità sospetta, nulla di allarmante. Al massimo pretenderà di scegliere il film del sabato sera."],
+      [0, "Archiviato", "Livello 0 · Nessuna corrispondenza",
+       "Nessun tiranno all'orizzonte. Il fascicolo viene archiviato: il soggetto è, a tutti gli effetti, una brava persona."],
+    ],
+    resultName: "Esito della valutazione", formulaParents: "Genitori", formulaChild: "figlio",
+    reportName: "Rapporto d'indagine", report: "Rapporto",
+    sameDayParent: "{name} è nato lo stesso giorno di {list}.",
+    nearParent: "Il compleanno di {name} cade vicino a quello di {list}.",
+    days0: "stesso giorno", days1: "1 giorno di scarto", daysN: "{n} giorni di scarto",
+    childExact: "Nasce nel giorno esatto in cui {list}.",
+    childAnniv: "Nasce nell'anniversario del giorno in cui {list}.",
+    childNear: "Nasce a ridosso dell'anniversario: {list}.",
+    childExactShort: "stessa data, anno compreso", childAnnivShort: "stesso giorno dell'anno", estimated9: "stima a 9 mesi",
+    and: " e ",
+    threadName: "Il filo", followThread: "Segui il filo.",
+    threadOne: "1 fascicolo collegato alla vostra famiglia: dal {first} fino alla culla, nel {last}. Aprite il dorso per leggerlo.",
+    threadMany: "{n} fascicoli collegati alla vostra famiglia, in ordine di nascita: dal {first} fino alla culla, nel {last}. Aprite i dorsi per leggerli.",
+    file: "Fascicolo", fileNo: "N.",
+    born: "Nato il", inPower: "Al potere dal", event: "Evento",
+    victims: "Stima delle vittime", marginNote: "Nota a margine", openFile: "Apri il fascicolo di {name}",
+    reasonBirthday: "Compleanno · Soggetto {s}", reasonRise: "Ascesa al potere · Soggetto C",
+    cradleName: "La culla", cradleTitle: "E il filo arriva alla culla.",
+    cradleBorn: "Nato il {d}", cradleExpected: "Nascita prevista il {d}",
+    cradleText: "{when}. Probabilità complessiva che diventi un dittatore: {t}%.",
+    restart: "Nuova valutazione",
+  },
+  en: {
+    docTitle: "Dictator in Diapers",
+    sideTitle: "Dictator in Diapers",
+    frontPage: "Front page",
+    coverLine1: "Dictator", coverLine2: "In diapers",
+    stampTop: "Royal Mail of Fate", stampBottom: "Files · 69–2026",
+    leadCap: "E",
+    leadRest: "very tyrant in history was, first of all, a baby. Someone rocked the cradle, someone picked the name. Nobody saw what was coming next.",
+    gazetteName: "The Dynastic Odds Gazette", gazetteSpine: "The Gazette", gazetteBadge: "Read", page2: "P. 2",
+    issue: "Vol. I · No. 81", special: "Special edition",
+    gazetteP1: "This gazette is here to make amends. It compares the birthdays of two parents with those of 81 dictators, emperors and autocrats, from Nero to Assad, and their baby's birth with the anniversary of the day each of them seized power.",
+    gazetteQuote: "“The closer the dates, the thicker the file.”",
+    gazetteP2: "The result reads like an investigation: a red thread starts from your family, runs through the centuries, stops at every connected file and ends at the cradle.",
+    noticeName: "Notice to readers", noticeBadge: "Rules", page3: "P. 3", noticeTitle: "Notice",
+    noticeText: "Fill in the form with the birth dates of both parents and of the baby. If the baby isn't born yet, the editors will estimate a date nine months from today.",
+    protocolTitle: "Assessment protocol",
+    rule1: "Each parent's birthday against every dictator's: worth 70%.",
+    rule2: "The baby's birth against the anniversary of every seizure of power: worth 30%.",
+    rule3: "100% only comes up when everything lines up.",
+    formName: "Reader's form", formSpine: "The form", formBadge: "Form", page4: "P. 4",
+    cutLine: "Cut along the dotted line", formTitle: "Request for assessment", formCode: "Form 7/B",
+    subjectA: "Subject A", subjectB: "Subject B", subjectC: "Subject C",
+    parent1: "First parent", parent2: "Second parent", baby: "The baby",
+    name: "Name", birthDate: "Date of birth", placeholderA: "Anna", placeholderB: "Mark", datePlaceholder: "dd/mm/yyyy",
+    notBorn: "Not born yet, or not sure of the date: estimate 9 months from today",
+    estimatedNote: "Estimated date: {d}.",
+    submit: "Pull the thread",
+    missing: "Missing: {list}. Format: dd/mm/yyyy.",
+    missingA: "Subject A's date", missingB: "Subject B's date", missingC: "the baby's date (or tick the estimate)",
+    serverError: "The server isn't answering properly: {msg}. Is it still running?",
+    months: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    weekdays: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+    calDays: ["M", "T", "W", "T", "F", "S", "S"],
+    calToday: "Today", calClear: "Clear", calOpen: "Open calendar", calMonth: "Month", calYear: "Year",
+    calPrev: "Previous month", calNext: "Next month",
+    year: "Year", today: "Today",
+    levels: [
+      [100, "Confirmed", "Level 5 · Historical certainty",
+       "Every alignment checks out. History has already booked a balcony, a uniform and at least one equestrian statue."],
+      [80, "Critical", "Level 4 · Critical threat",
+       "The stars don't lie, and neither do the archives. Avoid toy soldiers, globes and any board game with the word “conquest” on the box."],
+      [60, "High", "Level 3 · High threat",
+       "Too many coincidences to ignore. First warning sign to watch for: very long speeches from the high chair."],
+      [40, "Watch", "Level 2 · Active surveillance",
+       "Ambiguous profile. Could become a charismatic leader, or just the most feared class president in school."],
+      [15, "Marginal", "Level 1 · Marginal risk",
+       "A few suspicious affinities, nothing alarming. At worst, they'll insist on choosing the Saturday night movie."],
+      [0, "Filed", "Level 0 · No match",
+       "No tyrant on the horizon. The file is closed: the subject is, to all intents and purposes, a nice person."],
+    ],
+    resultName: "Assessment result", formulaParents: "Parents", formulaChild: "baby",
+    reportName: "Investigation report", report: "Report",
+    sameDayParent: "{name} was born on the same day as {list}.",
+    nearParent: "{name}'s birthday falls close to that of {list}.",
+    days0: "same day", days1: "1 day off", daysN: "{n} days off",
+    childExact: "Born on the very day of: {list}.",
+    childAnniv: "Born on the anniversary of: {list}.",
+    childNear: "Born close to the anniversary of: {list}.",
+    childExactShort: "same date, year included", childAnnivShort: "same day of the year", estimated9: "9-month estimate",
+    and: " and ",
+    threadName: "The thread", followThread: "Follow the thread.",
+    threadOne: "1 file connected to your family: from {first} all the way to the cradle, in {last}. Open the spine to read it.",
+    threadMany: "{n} files connected to your family, in order of birth: from {first} all the way to the cradle, in {last}. Open the spines to read them.",
+    file: "File", fileNo: "No.",
+    born: "Born", inPower: "In power from", event: "Event",
+    victims: "Estimated victims", marginNote: "Margin note", openFile: "Open {name}'s file",
+    reasonBirthday: "Birthday · Subject {s}", reasonRise: "Rise to power · Subject C",
+    cradleName: "The cradle", cradleTitle: "And the thread reaches the cradle.",
+    cradleBorn: "Born on {d}", cradleExpected: "Expected on {d}",
+    cradleText: "{when}. Overall probability of becoming a dictator: {t}%.",
+    restart: "New assessment",
+  },
+};
+
+let lang = "it";
+const T = () => I18N[lang];
+const fill = (template, values) => template.replace(/\{(\w+)\}/g, (_, k) => values[k] ?? "");
+
+/* ============================================================ helpers */
+const $ = (id) => document.getElementById(id);
+const viewport = $("viewport"), track = $("track");
+const pad = (n, l = 2) => String(n).padStart(l, "0");
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v; else e.setAttribute(k, v);
+  }
+  for (const c of children) if (c != null) e.append(c);
+  return e;
+}
+
+/* ============================================================ dates */
+const isLeap = (y) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+const daysInMonth = (y, m) => [31, isLeap(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m];
+function firstWeekday(y, m) { const d = new Date(0); d.setUTCFullYear(y, m, 1); return (d.getUTCDay() + 6) % 7; }   // 0 = Monday
+const iso = (y, m, d) => `${pad(y, 4)}-${pad(m + 1)}-${pad(d)}`;
+const parseIso = (s) => { const [y, m, d] = s.split("-").map(Number); return { y, m: m - 1, d }; };
+const longDate = (s) => { const { y, m, d } = parseIso(s); return `${d} ${T().months[m]} ${y}`; };
+function today() { const t = new Date(); return { y: t.getFullYear(), m: t.getMonth(), d: t.getDate() }; }
+function inNineMonths() {
+  const t = today();
+  let m = t.m + 9; const y = t.y + Math.floor(m / 12); m %= 12;
+  return iso(y, m, Math.min(t.d, daysInMonth(y, m)));
+}
+function parseTyped(text) {
+  const r = text.trim().match(/^(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{4})$/);
+  if (!r) return null;
+  const d = +r[1], m = +r[2] - 1, y = +r[3];
+  if (m < 0 || m > 11 || d < 1 || y < 1 || d > daysInMonth(y, m)) return null;
+  return iso(y, m, d);
+}
+
+/* ============================================================ date picker */
+// Typing only digits adds the "/" automatically: 20041990 -> 20/04/1990.
+// Typing the slashes by hand allows single digits too: 5/4/1990 -> 05/04/1990.
+function formatTyped(text, deleting) {
+  let parts = text.split(/[\/.\-\s]/);
+  if (parts.length > 1) parts = parts.map((p, i) => (i < parts.length - 1 && p.length === 1 ? "0" + p : p));
+  const digits = parts.join("").replace(/\D/g, "").slice(0, 8);
+  let v = digits.slice(0, 2);
+  if (digits.length > 2 || (digits.length === 2 && !deleting)) v += "/" + digits.slice(2, 4);
+  if (digits.length > 4 || (digits.length === 4 && !deleting)) v += "/" + digits.slice(4, 8);
+  return v;
+}
+
+const pickers = {};
+function createPicker(box) {
+  const id = box.dataset.id;
+  const input = el("input", { class: "input", id, inputmode: "numeric", maxlength: "10", autocomplete: "off" });
+  const btn = el("button", { class: "dp-btn", type: "button" }, "CAL");
+  const pop = el("div", { class: "dp-pop" });
+  box.append(input, btn);
+  document.body.append(pop);
+  const state = { value: null, view: { y: 1990, m: 0 } };
+
+  function set(v) {
+    state.value = v;
+    if (v) { const { y, m, d } = parseIso(v); input.value = `${pad(d)}/${pad(m + 1)}/${y}`; state.view = { y, m }; }
+    else input.value = "";
+  }
+  function place() {
+    const r = input.getBoundingClientRect();
+    const h = pop.offsetHeight, w = pop.offsetWidth;
+    let top = r.bottom + 8;
+    if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 8);
+    pop.style.top = `${top}px`;
+    pop.style.left = `${clamp(r.left, 8, innerWidth - w - 8)}px`;
+  }
+  function render() {
+    const t = T(), { y, m } = state.view;
+    const month = el("select", { "aria-label": t.calMonth });
+    t.months.forEach((name, i) => { const o = el("option", { value: i }, name); if (i === m) o.selected = true; month.append(o); });
+    month.onchange = () => { state.view.m = +month.value; render(); };
+    const year = el("input", { type: "number", min: "1", max: "2999", value: y, "aria-label": t.calYear });
+    year.onchange = () => { const v = +year.value; if (v >= 1 && v <= 2999) { state.view.y = v; render(); } };
+    const prev = el("button", { type: "button", "aria-label": t.calPrev }, "‹");
+    const next = el("button", { type: "button", "aria-label": t.calNext }, "›");
+    prev.onclick = () => { if (--state.view.m < 0) { state.view.m = 11; state.view.y--; } render(); };
+    next.onclick = () => { if (++state.view.m > 11) { state.view.m = 0; state.view.y++; } render(); };
+    const grid = el("div", { class: "dp-grid" });
+    t.calDays.forEach(g => grid.append(el("div", { class: "wd" }, g)));
+    for (let i = 0; i < firstWeekday(y, m); i++) grid.append(el("span"));
+    const now = today();
+    for (let d = 1; d <= daysInMonth(y, m); d++) {
+      const v = iso(y, m, d);
+      const b = el("button", { type: "button" }, String(d));
+      if (v === state.value) b.classList.add("selected");
+      if (y === now.y && m === now.m && d === now.d) b.classList.add("today");
+      b.onclick = () => { set(v); close(); input.focus({ preventScroll: true }); };
+      grid.append(b);
+    }
+    const toToday = el("button", { type: "button" }, t.calToday);
+    toToday.onclick = () => { const o = today(); set(iso(o.y, o.m, o.d)); close(); };
+    const clear = el("button", { type: "button" }, t.calClear);
+    clear.onclick = () => { set(null); close(); };
+    pop.replaceChildren(el("div", { class: "dp-head" }, prev, month, year, next), grid,
+                        el("div", { class: "dp-foot" }, clear, toToday));
+    if (isOpen()) place();
+  }
+  const isOpen = () => pop.classList.contains("open");
+  const open = () => { Object.values(pickers).forEach(p => p !== api && p.close()); pop.classList.add("open"); render(); place(); };
+  const close = () => pop.classList.remove("open");
+
+  btn.onclick = () => (isOpen() ? close() : open());
+  input.addEventListener("input", (e) => {
+    const deleting = (e.inputType || "").startsWith("delete");
+    // keep the caret after the same digit even when slashes are added
+    const digitsBefore = input.value.slice(0, input.selectionStart ?? input.value.length).replace(/\D/g, "").length;
+    const atEnd = (input.selectionStart ?? input.value.length) >= input.value.length;
+    const formatted = formatTyped(input.value, deleting);
+    if (formatted !== input.value) {
+      input.value = formatted;
+      if (!atEnd) {
+        let pos = 0, counted = 0;
+        while (pos < formatted.length && counted < digitsBefore) { if (/\d/.test(formatted[pos])) counted++; pos++; }
+        input.setSelectionRange(pos, pos);
+      }
+    }
+    const v = parseTyped(input.value);
+    state.value = v;
+    if (v) { const { y, m } = parseIso(v); state.view = { y, m }; if (isOpen()) render(); }
+  });
+  input.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  document.addEventListener("mousedown", (e) => { if (!box.contains(e.target) && !pop.contains(e.target)) close(); });
+
+  const api = {
+    get value() { return state.value; },
+    set, close,
+    enable(yes) { input.disabled = !yes; btn.disabled = !yes; if (!yes) close(); },
+    view(y, m) { state.view = { y, m }; },
+    translate() { input.placeholder = T().datePlaceholder; btn.setAttribute("aria-label", T().calOpen); if (isOpen()) render(); },
+  };
+  pickers[id] = api;
+}
+document.querySelectorAll(".dp").forEach(createPicker);
+pickers.d1.view(1990, 0);
+pickers.d2.view(1990, 0);
+{ const o = today(); pickers.dc.view(o.y, o.m); }
+const closePickers = () => Object.values(pickers).forEach(p => p.close());
+
+let manualDate = null;
+$("estimate").addEventListener("change", (e) => {
+  const p = pickers.dc;
+  if (e.target.checked) {
+    manualDate = p.value;
+    p.set(inNineMonths()); p.enable(false);
+  } else {
+    p.enable(true); p.set(manualDate);
+  }
+  updateEstimateNote();
+});
+function updateEstimateNote() {
+  $("estimate-note").textContent = $("estimate").checked ? fill(T().estimatedNote, { d: longDate(pickers.dc.value) }) : "";
+}
+
+/* ============================================================ result panels */
+function daysText(n) { const t = T(); return n === 0 ? t.days0 : n === 1 ? t.days1 : fill(t.daysN, { n }); }
+function joinList(names) { return names.length <= 1 ? names.join("") : names.slice(0, -1).join(", ") + T().and + names.at(-1); }
+const yearOf = (s) => parseIso(s).y;
+const initials = (name) => name.split(" ").filter(p => p[0] === p[0].toUpperCase()).map(p => p[0]).slice(0, 2).join("");
+
+function row(who, what, detail, amount) {
+  return el("div", { class: "row" },
+    el("div", { class: "who" }, el("span", { class: "badge" }, who)),
+    el("div", { class: "what" }, what, el("small", {}, detail)),
+    el("div", { class: "amount" }, amount));
+}
+
+function resultPanel(r) {
+  const t = T();
+  const [, seal, level, verdict] = t.levels.find(([min]) => r.total >= min);
+  const c = r.child;
+  const scale = el("div", { class: "scale", id: "scale" });
+  for (let i = 0; i < 20; i++) scale.append(el("i"));
+  return el("div", { class: "panel p-result first result", id: "p-result", "data-name": t.resultName },
+    el("div", { class: "percent" },
+      el("div", { class: "block" },
+        el("span", { class: "digits-box" },                      // an invisible "100" reserves the space
+          el("span", { class: "reserve", "aria-hidden": "true" }, "100"),
+          el("span", { id: "digits" }, "0")),
+        el("sup", {}, "%")),
+      el("div", { class: "seal disp", id: "seal" }, seal)),
+    el("div", {},
+      el("div", { class: "level" }, level),
+      scale,
+      el("p", { class: "verdict" }, verdict),
+      el("div", { class: "formula" },
+        `${t.formulaParents} `, el("b", {}, `${r.parents_avg}%`), ` × ${r.parents_weight}%  +  ${t.formulaChild} `,
+        el("b", {}, `${c.percent}%`), ` × ${r.child_weight}%  =  `, el("b", {}, `${r.total}%`))),
+    el("div", { class: "pin-start", "data-thread": "" }));
+}
+
+function reportPanel(r) {
+  const t = T();
+  const rows = r.parents.map((p, i) => {
+    const names = joinList(p.dictators.map(d => d.name));
+    const sentence = fill(p.distance === 0 ? t.sameDayParent : t.nearParent, { name: p.name, list: names });
+    return row([t.subjectA, t.subjectB][i], sentence, `${longDate(p.birth)} · ${daysText(p.distance)}`, `${p.percent}%`);
+  });
+  const c = r.child;
+  const rises = joinList(c.dictators.map(d => `${d.name} (${d.event})`));
+  const sentence = fill(c.same_date ? t.childExact : c.distance === 0 ? t.childAnniv : t.childNear, { list: rises });
+  const gap = c.same_date ? t.childExactShort : c.distance === 0 ? t.childAnnivShort : daysText(c.distance);
+  rows.push(row(t.subjectC, sentence, `${longDate(c.birth)}${c.estimated ? " · " + t.estimated9 : ""} · ${gap}`, `${c.percent}%`));
+  return el("div", { class: "panel p-report result", "data-name": t.reportName },
+    el("div", { class: "pin left", "data-thread": "" }),
+    el("div", { class: "pin right", "data-thread": "" }),
+    el("h3", {}, el("span", { class: "block" }, t.report)), ...rows);
+}
+
+function introPanel(files, r) {
+  const t = T();
+  const first = yearOf(files[0].d.birth), last = yearOf(r.child.birth);
+  return el("div", { class: "panel p-intro result", "data-name": t.threadName },
+    el("p", { class: "big" }, t.followThread),
+    el("p", {}, fill(files.length === 1 ? t.threadOne : t.threadMany, { n: files.length, first, last })));
+}
+
+// a dossier is a book: spine with the name, it opens to the right
+function dossierBook(d, reasons) {
+  const t = T();
+  const photo = el("div", { class: "photo" },
+    el("div", { class: "initials" }, initials(d.name)),
+    el("div", { class: "num" }, t.file, el("b", {}, `${t.fileNo} ${pad(d.number, 3)}`)));
+  if (d.image) {
+    const img = new Image();
+    img.onload = () => {
+      const layer = el("div", { class: "img" });
+      layer.style.backgroundImage = `url("${d.image}")`;
+      photo.insertBefore(layer, photo.children[1]);
+    };
+    img.src = d.image;
+  }
+  const year = yearOf(d.birth);
+  const tag = reasons.map(x => x.short).join(" · ");
+  return el("article", { class: "book dossier result", "data-shelf": "results", "data-name": d.name, "data-id": d.id, "data-year": String(year),
+    // when open it always fits the screen, spine included
+    style: "--w: min(calc(148 * var(--u)), calc(100vw - var(--sidebar) - var(--spine) - 2 * var(--u)))" },
+    el("button", { class: "spine", type: "button", "aria-expanded": "false", "aria-label": fill(t.openFile, { name: d.name }) },
+      el("span", { class: "pin", "data-thread": "" }),
+      el("span", { class: "spine-title" }, d.name),
+      el("span", { class: "spine-foot" }, el("span", { class: "badge" }, tag), el("span", {}, String(year))),
+      el("i", { class: "arrow" })),
+    el("div", { class: "pages" },
+      el("div", { class: "pages-inner" },
+        el("div", { class: "bg-year", "data-parallax": "0.3" }, String(year)),
+        el("div", { class: "card" },
+          el("div", { class: "pin left", "data-thread": "" }),
+          el("div", { class: "pin right", "data-thread": "" }),
+          photo,
+          // right of the photo, two rows: header on top, story below
+          el("div", { class: "text content" },
+            el("div", { class: "card-head" },
+              el("div", { class: "reasons" }, ...reasons.map(x => el("span", { class: "badge" }, x.long))),
+              el("h3", { class: "disp" }, d.name),
+              el("p", { class: "role" }, d.who),
+              el("dl", { class: "facts" },
+                el("div", {}, el("dt", {}, t.born), el("dd", {}, longDate(d.birth))),
+                el("div", {}, el("dt", {}, t.inPower), el("dd", {}, longDate(d.rise))),
+                el("div", {}, el("dt", {}, t.event), el("dd", {}, d.event)))),
+            el("div", { class: "story" },
+              el("p", { class: "bio" }, d.biography),
+              el("dl", { class: "boxes" },
+                el("div", { class: "box victims" }, el("dt", {}, t.victims), el("dd", {}, d.victims)),
+                el("div", { class: "box fun-fact" }, el("dt", {}, t.marginNote), el("dd", {}, d.fun_fact)))))))));
+}
+
+function endPanel(r) {
+  const t = T(), c = r.child;
+  const restart = el("button", { class: "restart", type: "button" }, t.restart);
+  restart.onclick = () => curtain(() => { openBook($("form-book"), { instant: true }); });
+  const when = fill(c.estimated ? t.cradleExpected : t.cradleBorn, { d: longDate(c.birth) });
+  return el("div", { class: "panel p-end result", "data-name": t.cradleName, "data-year": String(yearOf(c.birth)) },
+    el("span", { class: "pin", "data-thread": "" }),
+    el("div", { class: "block" }, String(yearOf(c.birth))),
+    el("h3", {}, t.cradleTitle),
+    el("p", {}, fill(t.cradleText, { when, t: r.total })),
+    restart);
+}
+
+/* ============================================================ books: opening */
+let animateUntil = 0, pendingTarget = null;
+
+// open books stay open; the one just opened is brought all the way to the left
+function openBook(book, { instant = false } = {}) {
+  if (instant) book.classList.add("no-transition");
+  book.classList.add("open");
+  book.querySelector(".spine").setAttribute("aria-expanded", "true");
+  pendingTarget = book.offsetLeft;
+  animateUntil = performance.now() + 1000;
+  if (instant) { measure(); S.x = S.target; }
+}
+function closeBook(book) {
+  book.classList.remove("open");
+  book.querySelector(".spine").setAttribute("aria-expanded", "false");
+  animateUntil = performance.now() + 1000;
+}
+track.addEventListener("click", (e) => {
+  const spine = e.target.closest(".spine");
+  if (!spine) return;
+  const book = spine.closest(".book");
+  book.classList.contains("open") ? closeBook(book) : openBook(book);
+});
+
+/* ============================================================ smooth horizontal scrolling */
+const S = { x: 0, target: 0, max: 0, vel: 0 };
+let threadPath = null, threadLength = 0, threadStartX = 0, threadEndX = 1, trackLength = 0;
+let resultsStart = Infinity, ticks = [], parallax = [], named = [], animated = true, total = 0;
+
+// split a name into two lines as equal as possible (e.g. "Maximiliano Hernández / Martínez")
+function twoLines(name) {
+  const words = name.split(" ");
+  let best = [name, ""], worst = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const a = words.slice(0, i).join(" "), b = words.slice(i).join(" ");
+    const longest = Math.max(a.length, b.length);
+    if (longest < worst) { worst = longest; best = [a, b]; }
+  }
+  return best;
+}
+
+// cover title, spine names and card names always fit; long stories shrink a little if needed
+function fitTitles() {
+  // cover: the title blocks (and the stamp) stay inside the cover
+  const cover = $("cover"), blocks = cover.querySelectorAll(".blocks .block");
+  blocks.forEach(b => (b.style.fontSize = ""));
+  const cs = getComputedStyle(cover);
+  const room = cover.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  let px = parseFloat(getComputedStyle(blocks[0]).fontSize);
+  const widest = () => Math.max(blocks[0].offsetWidth, cover.querySelector(".block-row").scrollWidth);
+  while (widest() > room && px > 20) { px *= .96; blocks.forEach(b => (b.style.fontSize = `${px}px`)); }
+
+  for (const s of track.querySelectorAll(".spine-title")) {
+    const name = s.dataset.text || s.textContent;   // (not "data-name": that one feeds the sidebar)
+    s.dataset.text = name;
+    s.style.fontSize = "";
+    s.replaceChildren(name);
+    const base = parseFloat(getComputedStyle(s).fontSize);
+    const maxHigh = parseFloat(getComputedStyle(s).maxHeight);
+    const maxWide = parseFloat(getComputedStyle(s).maxWidth);
+    if (s.scrollHeight <= maxHigh + 1) continue;               // fits on one line
+    const [a, b] = twoLines(name);
+    s.replaceChildren(a, el("br"), b);
+    const longest = s.scrollHeight;
+    const ratio = Math.min(1, maxHigh / longest, maxWide / (2 * base * .98));
+    s.style.fontSize = `${base * ratio * .97}px`;
+  }
+  for (const h of track.querySelectorAll(".card-head h3")) {
+    h.style.fontSize = "";
+    let size = parseFloat(getComputedStyle(h).fontSize);
+    const lineHeight = () => parseFloat(getComputedStyle(h).lineHeight) || size * .9;
+    // no broken words and at most two lines
+    while ((h.scrollWidth > h.clientWidth + 1 || h.offsetHeight > lineHeight() * 2.2) && size > 14) {
+      size *= .95; h.style.fontSize = `${size}px`;
+    }
+  }
+  // cards with the longest story: text shrinks just enough (12% at most) to fit
+  for (const c of track.querySelectorAll(".card .content")) {
+    const story = c.querySelector(".story");
+    let z = 1;
+    story.style.zoom = "";
+    while (c.scrollHeight > c.clientHeight + 1 && z > .88) { z -= .02; story.style.zoom = z; }
+  }
+}
+
+function measure(withAxis = true) {
+  track.style.setProperty("--skew", "0deg");
+  // real track length: end of the last panel + its margin
+  // (scrollWidth won't do: parallax and skew change it)
+  const last = [...track.children].filter(n => !n.classList.contains("thread")).at(-1);
+  trackLength = last.offsetLeft + last.offsetWidth + parseFloat(getComputedStyle(last).marginRight);
+  S.max = Math.max(0, trackLength - viewport.clientWidth);
+  if (pendingTarget !== null) S.target = clamp(pendingTarget, 0, S.max);
+  S.target = clamp(S.target, 0, S.max);
+  const first = track.querySelector(".result");
+  resultsStart = first ? first.offsetLeft - 80 : Infinity;
+  parallax = [...track.querySelectorAll("[data-parallax]")].map(n => {
+    const c = n.closest(".book, .panel, .section");
+    return { n, f: +n.dataset.parallax, centre: c.offsetLeft + c.offsetWidth / 2 };
+  });
+  named = [...track.querySelectorAll("[data-name]")].map(n => ({ name: n.dataset.name, from: n.offsetLeft }));
+  drawThread();
+  if (withAxis) drawAxis(); else placeTicks();
+}
+
+function drawThread() {
+  track.querySelector(".thread")?.remove();
+  threadPath = null;
+  const base = track.getBoundingClientRect();
+  const points = [...track.querySelectorAll("[data-thread]")]
+    .filter(p => { const b = p.closest(".book"); return !b || !p.closest(".pages") || b.classList.contains("open"); })
+    .map(p => {
+      const r = p.getBoundingClientRect();
+      return { x: r.left - base.left + r.width / 2, y: r.top - base.top + r.height / 2, group: p.closest(".card, .panel, .spine") };
+    });
+  if (points.length < 2) return;
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1], b = points[i];
+    if (a.group === b.group) d += ` L ${b.x} ${b.y}`;           // behind the card: straight
+    else d += ` Q ${(a.x + b.x) / 2} ${Math.max(a.y, b.y) + Math.min(240, Math.abs(b.x - a.x) * .35)} ${b.x} ${b.y}`;   // in between: it sags
+  }
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "thread");
+  svg.setAttribute("width", trackLength);
+  svg.setAttribute("height", track.offsetHeight);
+  threadPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  threadPath.setAttribute("d", d);
+  svg.append(threadPath);
+  track.append(svg);
+  threadLength = threadPath.getTotalLength();
+  threadStartX = points[0].x;
+  threadEndX = points.at(-1).x;
+  threadPath.style.strokeDasharray = threadLength;
+}
+
+function drawAxis() {
+  const axis = $("axis");
+  axis.querySelectorAll(".tick").forEach(t => t.remove());
+  ticks = [...track.querySelectorAll(".dossier, .p-end")].map(p => {
+    const tick = el("div", { class: "tick" }, el("i"), el("span", {}, p.dataset.year));
+    tick.onclick = () => (p.classList.contains("book") ? openBook(p) : scrollToX(p.offsetLeft + p.offsetWidth / 2));
+    axis.append(tick);
+    return { el: tick, p };
+  });
+  axis.classList.toggle("crowded", ticks.length > 14);   // too many dates: only the dots are shown
+  placeTicks();
+}
+// evenly spaced ticks (the spines are close together, the dates would overlap)
+function placeTicks() {
+  ticks.forEach((t, i) => {
+    t.centre = t.p.offsetLeft + Math.min(t.p.offsetWidth, viewport.clientWidth) / 2;
+    t.el.style.left = `${((i + .5) / ticks.length) * 100}%`;
+  });
+}
+// progress along the axis, interpolated between one tick and the next
+function axisProgress(centre) {
+  const n = ticks.length;
+  if (!n) return 0;
+  if (centre <= ticks[0].centre) return clamp((centre - resultsStart) / (ticks[0].centre - resultsStart), 0, 1) * (.5 / n);
+  for (let i = 0; i < n - 1; i++) {
+    const a = ticks[i].centre, b = ticks[i + 1].centre;
+    if (centre <= b) return (i + .5 + (centre - a) / (b - a)) / n;
+  }
+  return clamp((n - .5) / n + (centre - ticks[n - 1].centre) / viewport.clientWidth * (.5 / n), 0, 1);
+}
+
+function scrollToX(centre, instant = false) {
+  pendingTarget = null;
+  S.target = clamp(centre - viewport.clientWidth / 2, 0, S.max);
+  if (instant) S.x = S.target;
+}
+
+// an inner element that can still scroll vertically takes priority
+function canScroll(node, dy) {
+  for (let n = node; n && n !== track && n !== document.body; n = n.parentElement) {
+    if (n.scrollHeight > n.clientHeight + 1) {
+      const o = getComputedStyle(n).overflowY;
+      if ((o === "auto" || o === "scroll") &&
+          ((dy > 0 && n.scrollTop + n.clientHeight < n.scrollHeight - 1) || (dy < 0 && n.scrollTop > 0))) return true;
+    }
+  }
+  return false;
+}
+function move(d) { pendingTarget = null; S.target = clamp(S.target + d, 0, S.max); }
+
+addEventListener("wheel", (e) => {
+  if (e.target.closest?.(".dp-pop")) return;
+  const vertical = Math.abs(e.deltaY) >= Math.abs(e.deltaX);
+  if (vertical && canScroll(e.target, e.deltaY)) return;
+  e.preventDefault();
+  const factor = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? innerWidth : 1;
+  move((vertical ? e.deltaY : e.deltaX) * factor);
+  closePickers();
+}, { passive: false });
+
+let touch = null;
+addEventListener("touchstart", (e) => { const t = e.touches[0]; touch = { x: t.clientX, y: t.clientY, v: 0, inner: null }; }, { passive: true });
+addEventListener("touchmove", (e) => {
+  if (!touch || e.target.closest?.(".dp-pop")) return;
+  const t = e.touches[0];
+  const dx = touch.x - t.clientX, dy = touch.y - t.clientY;
+  const vertical = Math.abs(dy) > Math.abs(dx);
+  if (touch.inner === null) touch.inner = vertical && canScroll(e.target, dy);
+  if (touch.inner) { touch.x = t.clientX; touch.y = t.clientY; return; }
+  e.preventDefault();
+  const d = (vertical ? dy : dx) * 1.4;
+  move(d);
+  touch.v = d; touch.x = t.clientX; touch.y = t.clientY;
+}, { passive: false });
+addEventListener("touchend", () => { if (touch && !touch.inner) move(touch.v * 14); touch = null; });
+
+addEventListener("keydown", (e) => {
+  if (e.target.closest?.("input, select, textarea")) return;
+  const step = viewport.clientWidth * .7;
+  const keys = { ArrowRight: step, ArrowDown: step, PageDown: step, ArrowLeft: -step, ArrowUp: -step, PageUp: -step };
+  if (e.key in keys) { e.preventDefault(); move(keys[e.key]); }
+  if (e.key === "Home") move(-1e9);
+  if (e.key === "End") move(1e9);
+});
+
+// tabbing to the next field: bring it into view
+document.addEventListener("focusin", (e) => {
+  viewport.scrollLeft = 0;
+  const r = e.target.getBoundingClientRect?.();
+  if (!r || e.target.closest(".dp-pop, .lang")) return;
+  const left = viewport.getBoundingClientRect().left;
+  if (r.left < left || r.right > innerWidth) scrollToX(r.left - left + S.x + r.width / 2);
+});
+addEventListener("resize", () => { closePickers(); fitTitles(); measure(); });
+
+function frame(t) {
+  if (t < animateUntil) measure(false);                     // books are opening: measure everything again
+  else if (pendingTarget !== null && animateUntil) {
+    measure(); pendingTarget = null; animateUntil = 0;
+    track.querySelectorAll(".no-transition").forEach(n => n.classList.remove("no-transition"));
+  }
+  const before = S.x;
+  S.x += (S.target - S.x) * (reduceMotion ? 1 : .085);
+  if (Math.abs(S.target - S.x) < .1) S.x = S.target;
+  S.vel = S.x - before;
+  draw();
+  requestAnimationFrame(frame);
+}
+
+function draw() {
+  const x = S.x, w = viewport.clientWidth, centre = x + w / 2;
+  track.style.transform = `translate3d(${-x}px, 0, 0)`;
+  // effect: the paper leans with the speed, like a sheet being dragged
+  const lean = reduceMotion ? 0 : clamp(-S.vel * .06, -7, 7);
+  track.style.setProperty("--skew", `${lean.toFixed(2)}deg`);
+  for (const p of parallax) {
+    const v = `${((p.centre - centre) * p.f).toFixed(1)}px`;
+    if (p.n.classList.contains("bg-year")) p.n.style.setProperty("--px", v);
+    else p.n.style.transform = `translateX(${v})`;
+  }
+
+  $("progress").style.width = `${S.max ? (x / S.max) * 100 : 0}%`;
+  const inResults = centre > resultsStart;
+  $("timeline").classList.toggle("visible", inResults);
+  const here = named.filter(n => n.from <= x + w * .35).at(-1);
+  if (here) $("side-where").textContent = here.name;
+
+  if (threadPath) {
+    const shown = clamp((x + w * 1.05 - threadStartX) / (threadEndX - threadStartX), 0, 1);
+    threadPath.style.strokeDashoffset = threadLength * (1 - shown);
+  }
+  $("progress-fill").style.width = `${axisProgress(centre) * 100}%`;
+  let year = T().today;
+  for (const t of ticks) {
+    const passed = t.centre <= centre + w * .2;
+    t.el.classList.toggle("passed", passed);
+    if (passed) year = t.p.dataset.year;
+  }
+  $("year-now").textContent = year;
+
+  // the seal slams down and the number climbs when the result reaches the centre
+  const result = $("p-result");
+  if (!animated && result && Math.abs(result.offsetLeft + result.offsetWidth / 2 - centre) < w * .3) {
+    animated = true;
+    $("seal").classList.add("down");
+    countUp(total);
+  }
+}
+
+function countUp(end) {
+  const t0 = performance.now(), duration = 1200, bars = $("scale").children;
+  function step(t) {
+    const k = Math.min(1, (t - t0) / duration), v = Math.round(end * (1 - Math.pow(1 - k, 3)));
+    $("digits").textContent = v;
+    for (let i = 0; i < 20; i++) bars[i].classList.toggle("on", v >= (i + 1) * 5);
+    if (k < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================ paper curtain */
+async function curtain(halfway) {
+  const sheet = $("curtain");
+  if (reduceMotion) { halfway(); return; }
+  const w = innerWidth;
+  await sheet.animate([{ transform: `translateX(${w * 1.1}px)` }, { transform: `translateX(${-w * .25}px)` }],
+    { duration: 850, easing: "cubic-bezier(.7,0,.3,1)", fill: "forwards" }).finished;
+  halfway();
+  await new Promise(r => setTimeout(r, 200));
+  await sheet.animate([{ transform: `translateX(${-w * .25}px)` }, { transform: `translateX(${-w * 1.7}px)` }],
+    { duration: 900, easing: "cubic-bezier(.7,0,.3,1)", fill: "forwards" }).finished;
+  sheet.getAnimations().forEach(a => a.cancel());
+}
+
+/* ============================================================ result */
+let lastRequest = null, lastResult = null;
+
+function showResults(r, { keepPlace = false } = {}) {
+  const t = T();
+  const files = new Map();
+  const add = (d, long, short) => {
+    if (!files.has(d.id)) files.set(d.id, { d, reasons: [] });
+    files.get(d.id).reasons.push({ long, short });
+  };
+  r.parents.forEach((p, i) => p.dictators.forEach(d => add(d, fill(t.reasonBirthday, { s: "AB"[i] }), "AB"[i])));
+  r.child.dictators.forEach(d => add(d, t.reasonRise, "C"));
+  const list = [...files.values()].sort((a, b) => a.d.number - b.d.number);   // in order of birth
+
+  const openIds = keepPlace ? [...track.querySelectorAll(".dossier.open")].map(b => b.dataset.id) : [];
+  track.querySelectorAll(".result, .thread").forEach(n => n.remove());
+  track.append(
+    resultPanel(r), reportPanel(r), introPanel(list, r),
+    ...list.map(({ d, reasons }) => dossierBook(d, reasons)),
+    endPanel(r));
+  for (const id of openIds) track.querySelector(`.dossier[data-id="${id}"]`)?.classList.add("open", "no-transition");
+  total = r.total;
+  lastResult = r;
+  fitTitles();
+  measure();
+  track.querySelectorAll(".no-transition").forEach(n => n.classList.remove("no-transition"));
+  if (keepPlace) {
+    S.x = S.target = clamp(S.x, 0, S.max);
+    animated = false;                                       // the seal shows up again when the result is in view
+  } else {
+    animated = true;
+    const result = $("p-result");
+    scrollToX(result.offsetLeft + result.offsetWidth / 2, true);
+  }
+}
+
+async function fetchResult(body) {
+  const response = await fetch("/api/compute", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, lang }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "unknown error");
+  return data;
+}
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const t = T(), err = $("error");
+  err.style.display = "none";
+  const missing = [];
+  if (!pickers.d1.value) missing.push(t.missingA);
+  if (!pickers.d2.value) missing.push(t.missingB);
+  if (!$("estimate").checked && !pickers.dc.value) missing.push(t.missingC);
+  if (missing.length) {
+    err.textContent = fill(t.missing, { list: missing.join("; ") });
+    err.style.display = "block";
+    return;
+  }
+  const body = {
+    parents: [
+      { name: $("n1").value.trim() || t.subjectA, date: pickers.d1.value },
+      { name: $("n2").value.trim() || t.subjectB, date: pickers.d2.value },
+    ],
+    child: $("estimate").checked ? null : pickers.dc.value,
+  };
+  try {
+    const data = await fetchResult(body);
+    lastRequest = body;
+    closePickers();
+    await curtain(() => showResults(data));
+    animated = false;                      // seal and counter start once the curtain has gone
+  } catch (e) {
+    err.textContent = fill(t.serverError, { msg: e.message });
+    err.style.display = "block";
+  }
+});
+
+/* ============================================================ language */
+function applyLanguage(next) {
+  lang = I18N[next] ? next : "it";
+  try { localStorage.setItem("lang", lang); } catch {}
+  const t = T();
+  document.documentElement.lang = lang;
+  document.title = t.docTitle;
+  document.querySelectorAll("[data-i18n]").forEach(n => {
+    n.textContent = t[n.dataset.i18n];
+    n.removeAttribute("data-text");                     // spine titles: let fitTitles() start over
+  });
+  document.querySelectorAll("[data-i18n-attr]").forEach(n => {
+    for (const pair of n.dataset.i18nAttr.split(";")) {
+      const [attr, key] = pair.split(":");
+      n.setAttribute(attr, t[key]);
+    }
+  });
+  document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  const now = new Date();
+  $("today-long").textContent = lang === "en"
+    ? `${t.weekdays[now.getDay()]}, ${now.getDate()} ${t.months[now.getMonth()]} ${now.getFullYear()}`
+    : `${t.weekdays[now.getDay()]} ${now.getDate()} ${t.months[now.getMonth()]} ${now.getFullYear()}`;
+  Object.values(pickers).forEach(p => p.translate());
+  updateEstimateNote();
+  $("error").style.display = "none";
+  fitTitles();
+  measure();
+}
+
+document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", async () => {
+  if (b.dataset.lang === lang) return;
+  applyLanguage(b.dataset.lang);
+  // results already on screen: ask for them again in the new language
+  if (lastRequest) {
+    try { showResults(await fetchResult(lastRequest), { keepPlace: true }); } catch {}
+  }
+}));
+
+/* ============================================================ original fonts (fonts/ folder) */
+// If the licensed files are in the fonts/ folder they are used; otherwise the stand-ins stay.
+const ORIGINAL_FONTS = [
+  { family: "Canopee",         names: ["canopee", "canopee-regular"] },
+  { family: "Editorial New",   names: ["editorialnew-light", "editorialnew-regular", "editorialnew"] },
+  { family: "Editorial New",   names: ["editorialnew-lightitalic", "editorialnew-italic"], style: "italic" },
+  { family: "Domaine Display", names: ["domainedisplaycondensed-medium", "domainedispcondmedium", "domainedispcond-medium", "domainedisplay-medium"] },
+  { family: "Germgoth",        names: ["germgoth", "germgoth-regular"] },
+];
+async function loadOriginalFonts() {
+  let found = [];
+  try { found = await (await fetch("/api/fonts")).json(); } catch { return; }
+  // "Canopee Regular.otf", "canopee-regular.woff2", "Canopee_Regular.ttf"... all fine
+  const clean = (s) => s.toLowerCase().replace(/[\s_-]/g, "");
+  const base = (f) => clean(f.replace(/\.[^.]+$/, ""));
+  let loaded = 0;
+  for (const def of ORIGINAL_FONTS) {
+    const file = found.find(f => def.names.map(clean).includes(base(f)));
+    if (!file) continue;
+    try {
+      // one weight per file: it serves every requested weight (no fake bold)
+      const face = new FontFace(def.family, `url("/fonts/${encodeURIComponent(file)}")`, { weight: "100 900", style: def.style || "normal" });
+      document.fonts.add(await face.load());
+      if (def.family === "Domaine Display") document.documentElement.classList.add("domaine");
+      if (def.family === "Canopee") document.documentElement.classList.add("canopee");
+      loaded++;
+    } catch (e) { console.warn("Font not loaded:", file, e); }
+  }
+  if (loaded) { fitTitles(); measure(); }
+}
+
+/* ============================================================ start */
+// last language chosen on this browser, otherwise the browser's own language
+let startLang = (navigator.language || "").toLowerCase().startsWith("it") ? "it" : "en";
+try { const saved = localStorage.getItem("lang"); if (saved) startLang = saved; } catch {}
+applyLanguage(startLang);
+document.fonts?.ready.then(() => { fitTitles(); measure(); });
+loadOriginalFonts();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
